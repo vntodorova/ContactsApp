@@ -7,7 +7,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.widget.ListView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
 
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         contactsFragment = ContactsFragment.newInstance();
-        fragmentTransaction.add(android.R.id.content,contactsFragment,FRAGMENT_TAG).commit();
+        fragmentTransaction.add(android.R.id.content, contactsFragment, FRAGMENT_TAG).commit();
     }
 
 }

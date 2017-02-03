@@ -1,5 +1,7 @@
 package com.example.venetatodorova.contacts;
 
+import android.content.ContentResolver;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,14 +13,20 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
+
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ContactsFragment extends Fragment implements
-        LoaderManager.LoaderCallbacks<Cursor> {
+        LoaderManager.LoaderCallbacks<Cursor>, AdapterView.OnItemClickListener {
 
+    public static final String DATA = "Data";
+    public static final int CONTACTS_REQUEST_CODE = 1;
     private ContactsAdapter adapter;
     private ListView listView;
 
@@ -29,10 +37,12 @@ public class ContactsFragment extends Fragment implements
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        adapter = new ContactsAdapter(getContext(),null,0);
-        getLoaderManager().initLoader(0,null,this);
+        setRetainInstance(true);
+        adapter = new ContactsAdapter(getContext(), null, 0);
+        getLoaderManager().initLoader(0, null, this);
         listView = (ListView) getActivity().findViewById(R.id.listView);
         listView.setAdapter(adapter);
+        listView.setOnItemClickListener(this);
     }
 
     @Override
@@ -40,20 +50,20 @@ public class ContactsFragment extends Fragment implements
         String[] projectionFields = new String[]{
                 ContactsContract.Contacts._ID,
                 ContactsContract.Contacts.DISPLAY_NAME,
-                ContactsContract.Contacts.PHOTO_URI,};
+                ContactsContract.Contacts.PHOTO_URI,
+        };
         CursorLoader cursorLoader = new CursorLoader(getActivity(),
                 ContactsContract.Contacts.CONTENT_URI,
                 projectionFields,
                 null,
                 null,
-                null);
+                "display_name ASC");
 
         return cursorLoader;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        //List<ContactsWrapper> contacts = contactsFromCursor(cursor);
         adapter.swapCursor(cursor);
     }
 
@@ -62,25 +72,16 @@ public class ContactsFragment extends Fragment implements
         adapter.swapCursor(null);
     }
 
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        Cursor cursor = ((ContactsAdapter) adapterView.getAdapter()).getCursor();
+        cursor.moveToPosition(i);
 
-    private List<ContactsWrapper> contactsFromCursor(Cursor cursor) {
-        List<ContactsWrapper> contacts = new ArrayList<>();
-        ContactsWrapper contact = new ContactsWrapper();
+        String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
+        Intent intent = new Intent(getActivity(), ContactInfoActivity.class);
+        intent.putExtra(DATA, id);
+        startActivity(intent);
 
-        if (cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            do {
-                String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-                contact.setName(name);
-                String number = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                contact.setMobileNumber(number);
-                Uri imageUri = Uri.parse(cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_THUMBNAIL_URI)));
-                InputStream input = ContactsContract.Contacts.openContactPhotoInputStream(getActivity().getBaseContext().getContentResolver(), imageUri);
-                Bitmap bm = BitmapFactory.decodeStream(input);
-                contact.setImage(bm);
-            } while (cursor.moveToNext());
-        }
-
-        return contacts;
     }
+
 }
