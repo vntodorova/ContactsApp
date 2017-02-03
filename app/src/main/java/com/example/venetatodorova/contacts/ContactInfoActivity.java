@@ -5,6 +5,10 @@ import android.content.ContentUris;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Shader;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -12,6 +16,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 import android.widget.TextView;
 import java.io.ByteArrayInputStream;
+
+import static android.R.attr.bitmap;
 
 public class ContactInfoActivity extends AppCompatActivity {
 
@@ -29,11 +35,23 @@ public class ContactInfoActivity extends AppCompatActivity {
         mobileNumbers.setText(getContactMobileNumber(id));
 
         ImageView image = (ImageView) findViewById(R.id.contactImage);
-        image.setImageBitmap(getContactImage(Long.valueOf(id)));
+        image.setImageBitmap(getCircleBitmap(getContactImage(Long.valueOf(id))));
 
         TextView email = (TextView) findViewById(R.id.contactEmail);
         email.setText(getContactEmail(id));
 
+    }
+
+    private Bitmap getCircleBitmap(Bitmap bitmap) {
+        Bitmap circleBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+
+        BitmapShader shader = new BitmapShader (bitmap,  Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+        Paint paint = new Paint();
+        paint.setShader(shader);
+
+        Canvas c = new Canvas(circleBitmap);
+        c.drawCircle(bitmap.getWidth()/2, bitmap.getHeight()/2, bitmap.getWidth()/2, paint);
+        return circleBitmap;
     }
 
     private String getContactName(String id) {

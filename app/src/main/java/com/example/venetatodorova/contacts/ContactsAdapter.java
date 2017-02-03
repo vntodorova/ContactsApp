@@ -4,6 +4,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Shader;
 import android.media.Image;
 import android.net.Uri;
 import android.provider.ContactsContract;
@@ -51,23 +55,34 @@ public class ContactsAdapter extends CursorAdapter {
         holder.textView.setText(cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)));
         Bitmap image = null;
 
-        if(cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)) != null){
+        if (cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)) != null) {
             Uri imageUri = Uri.parse(cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)));
-            if(map.get(imageUri) == null){
+            if (map.get(imageUri) == null) {
                 try {
                     InputStream is = context.getContentResolver().openInputStream(imageUri);
                     image = BitmapFactory.decodeStream(is);
-                    map.put(imageUri,image);
+                    map.put(imageUri, image);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
             } else {
                 image = map.get(imageUri);
             }
-            holder.imageView.setImageBitmap(image);
+            holder.imageView.setImageBitmap(getCircleBitmap(image));
         } else {
-            holder.imageView.setImageResource(R.drawable.thumbnail);
+            holder.imageView.setImageResource(R.drawable.contact);
         }
+    }
 
+    private Bitmap getCircleBitmap(Bitmap bitmap) {
+        Bitmap circleBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+
+        BitmapShader shader = new BitmapShader (bitmap,  Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+        Paint paint = new Paint();
+        paint.setShader(shader);
+
+        Canvas c = new Canvas(circleBitmap);
+        c.drawCircle(bitmap.getWidth()/2, bitmap.getHeight()/2, bitmap.getWidth()/2, paint);
+        return circleBitmap;
     }
 }

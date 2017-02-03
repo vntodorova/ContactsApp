@@ -1,28 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="@dimen/layout_margin">
 
     <ImageView
         android:id="@+id/contactImage"
         android:layout_width="100dp"
-        android:layout_height="100dp" />
+        android:layout_height="100dp"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="50dp"/>
 
     <TextView
         android:id="@+id/contactName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/contactImage" />
+        android:layout_below="@+id/contactImage"
+        android:layout_centerHorizontal="true"
+        android:textSize="30sp"/>
 
     <TextView
         android:id="@+id/contactPhoneNumbers"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/contactName" />
+        android:layout_below="@+id/contactName"
+        android:layout_centerHorizontal="true"/>
 
     <TextView
         android:id="@+id/contactEmail"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/contactPhoneNumbers" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/contactPhoneNumbers"
+        android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>
