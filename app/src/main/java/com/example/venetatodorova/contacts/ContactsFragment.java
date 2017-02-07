@@ -1,11 +1,6 @@
 package com.example.venetatodorova.contacts;
-
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
@@ -17,16 +12,9 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-public class ContactsFragment extends Fragment implements
-        LoaderManager.LoaderCallbacks<Cursor>, AdapterView.OnItemClickListener {
+public class ContactsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
     public static final String DATA = "Data";
-    public static final int CONTACTS_REQUEST_CODE = 1;
     private ContactsAdapter adapter;
     private ListView listView;
 
@@ -42,7 +30,6 @@ public class ContactsFragment extends Fragment implements
         getLoaderManager().initLoader(0, null, this);
         listView = (ListView) getActivity().findViewById(R.id.listView);
         listView.setAdapter(adapter);
-        listView.setOnItemClickListener(this);
     }
 
     @Override
@@ -70,18 +57,6 @@ public class ContactsFragment extends Fragment implements
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         adapter.swapCursor(null);
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        Cursor cursor = ((ContactsAdapter) adapterView.getAdapter()).getCursor();
-        cursor.moveToPosition(i);
-
-        String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
-        Intent intent = new Intent(getActivity(), ContactInfoActivity.class);
-        intent.putExtra(DATA, id);
-        startActivity(intent);
-
     }
 
 }

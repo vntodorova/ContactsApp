@@ -1,10 +1,8 @@
 package com.example.venetatodorova.contacts;
 
 import android.graphics.Bitmap;
-import android.os.Parcel;
-import android.os.Parcelable;
 
-class ContactsWrapper implements Parcelable {
+class ContactsWrapper{
     private Bitmap image;
     private String name;
     private String mobileNumbers;
@@ -12,25 +10,6 @@ class ContactsWrapper implements Parcelable {
 
     ContactsWrapper() {
     }
-
-    private ContactsWrapper(Parcel in) {
-        image = in.readParcelable(Bitmap.class.getClassLoader());
-        name = in.readString();
-        mobileNumbers = in.readString();
-        email = in.readString();
-    }
-
-    public static final Creator<ContactsWrapper> CREATOR = new Creator<ContactsWrapper>() {
-        @Override
-        public ContactsWrapper createFromParcel(Parcel in) {
-            return new ContactsWrapper(in);
-        }
-
-        @Override
-        public ContactsWrapper[] newArray(int size) {
-            return new ContactsWrapper[size];
-        }
-    };
 
     Bitmap getImage() {
         return image;
@@ -64,16 +43,4 @@ class ContactsWrapper implements Parcelable {
         return mobileNumbers;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeParcelable(image, i);
-        parcel.writeString(name);
-        parcel.writeString(mobileNumbers);
-        parcel.writeString(email);
-    }
 }
