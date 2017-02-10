@@ -3,4 +3,6 @@
     <string name="take_picture">Take picture</string>
     <string name="keep">Keep</string>
     <string name="discard">Discard</string>
+    <string name="drawer_open">Drawer open</string>
+    <string name="drawer_close">Drawer close</string>
 </resources>

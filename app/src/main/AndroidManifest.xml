@@ -25,7 +25,8 @@
         <activity
             android:name=".ContactInfoActivity"
             android:label="@string/app_name" />
-        <activity android:name=".CameraActivity"></activity>
+        <activity android:name=".CameraActivity">
+        </activity>
     </application>
 
 </manifest>
