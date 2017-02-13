@@ -1,4 +1,4 @@
-package com.example.venetatodorova.contacts;
+package com.example.venetatodorova.contacts.fragments;
 
 import android.Manifest;
 import android.app.Fragment;
@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.Path;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -19,6 +21,7 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
@@ -26,6 +29,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.util.Log;
+import android.util.Range;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
@@ -35,16 +40,30 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ListView;
+
+import com.example.venetatodorova.contacts.adapters.DrawerAdapter;
+import com.example.venetatodorova.contacts.models.DrawerElement;
+import com.example.venetatodorova.contacts.R;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 
-public class CameraFragment extends Fragment implements View.OnClickListener {
+public class CameraFragment extends Fragment implements View.OnClickListener,
+        DrawerAdapter.FlashListener, DrawerAdapter.ZoomListener, DrawerAdapter.ExposureListener {
     private TextureView textureView;
     private Button button;
     private LinearLayout buttonBar;
-    private DrawerLayout drawerLayout;
+    private ActionBarDrawerToggle mDrawerToggle;
 
     private static final int REQUEST_CAMERA_PERMISSION = 200;
+    public static final String PATH = Environment.getExternalStorageDirectory()+"/image.jpg";
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
     static {
@@ -61,9 +80,11 @@ public class CameraFragment extends Fragment implements View.OnClickListener {
     private HandlerThread mBackgroundThread;
     private ImageReader reader;
     private Size previewSize;
-    private byte[] capture;
+    private CameraCharacteristics characteristics;
     private String cameraId;
     private CaptureListener listener;
+    private boolean flashIsOn = false;
+    private Rect zoomCrop;
 
     @Override
     public void onAttach(Context context) {
@@ -91,9 +112,18 @@ public class CameraFragment extends Fragment implements View.OnClickListener {
     }
 
     private void initDrawerMenu(View view) {
-        drawerLayout = (DrawerLayout) view.findViewById(R.id.fragment_camera);
-        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(getActivity(),drawerLayout, R.string.drawer_open, R.string.drawer_close);
-        drawerLayout.addDrawerListener(drawerToggle);
+        ArrayList<DrawerElement> list = new ArrayList<>();
+        list.add(new DrawerElement(DrawerElement.FLASH_CHECKBOX));
+        list.add(new DrawerElement(DrawerElement.ZOOM_SEEKBAR));
+        list.add(new DrawerElement(DrawerElement.EXPOSURE_SEEKBAR));
+
+        DrawerLayout mDrawerLayout = (DrawerLayout) view.findViewById(R.id.fragment_camera);
+        ListView mDrawerList = (ListView) view.findViewById(R.id.drawer_list);
+
+        mDrawerList.setAdapter(new DrawerAdapter(getActivity(), list, this, this, this));
+
+        mDrawerToggle = new ActionBarDrawerToggle(getActivity(), mDrawerLayout, R.string.drawer_open, R.string.drawer_close);
+        mDrawerLayout.addDrawerListener(mDrawerToggle);
 
     }
 
@@ -148,10 +178,16 @@ public class CameraFragment extends Fragment implements View.OnClickListener {
     private ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
-            Image image = reader.acquireLatestImage();
-            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-            capture = new byte[buffer.capacity()];
-            buffer.get(capture);
+            File file = new File(Environment.getExternalStorageDirectory()+"/image.jpg");
+            try (OutputStream out = new FileOutputStream(file)) {
+                Image image = reader.acquireLatestImage();
+                ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                byte[] bytes = new byte[buffer.capacity()];
+                buffer.get(bytes);
+                out.write(bytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     };
 
@@ -179,8 +215,14 @@ public class CameraFragment extends Fragment implements View.OnClickListener {
             captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             int rotation = getActivity().getWindowManager().getDefaultDisplay().getRotation();
             captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
+            if (flashIsOn) {
+                captureRequestBuilder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_TORCH);
+            } else {
+                captureRequestBuilder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_OFF);
+            }
+            captureRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION,zoomCrop);
             captureSession.stopRepeating();
-            captureSession.capture(captureRequestBuilder.build(),null,null);
+            captureSession.capture(captureRequestBuilder.build(), null, null);
 
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -195,7 +237,7 @@ public class CameraFragment extends Fragment implements View.OnClickListener {
             Surface surface = new Surface(texture);
             previewRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             previewRequestBuilder.addTarget(surface);
-            cameraDevice.createCaptureSession(Arrays.asList(surface,reader.getSurface()), new CameraCaptureSession.StateCallback() {
+            cameraDevice.createCaptureSession(Arrays.asList(surface, reader.getSurface()), new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                     captureSession = cameraCaptureSession;
@@ -230,7 +272,7 @@ public class CameraFragment extends Fragment implements View.OnClickListener {
         CameraManager manager = (CameraManager) getActivity().getSystemService(Context.CAMERA_SERVICE);
         try {
             cameraId = manager.getCameraIdList()[0];
-            CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
+            characteristics = manager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             if (map != null) {
                 previewSize = map.getOutputSizes(ImageFormat.JPEG)[0];
@@ -306,7 +348,7 @@ public class CameraFragment extends Fragment implements View.OnClickListener {
                 break;
             }
             case R.id.yes_button: {
-                listener.onCapture(capture);
+                listener.onCapture(PATH);
                 break;
             }
             case R.id.no_button: {
@@ -318,7 +360,48 @@ public class CameraFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    interface CaptureListener {
-        void onCapture(byte[] capture);
+    @Override
+    public void onExposurePercentageChange(int percentage) {
+        previewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
+
+        Range<Integer> range1 = characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE);
+        if (range1 != null) {
+            int min = range1.getLower();
+            int max = range1.getUpper();
+            int exposure = ((percentage * (max - min)) / 100) - max;
+            Log.v("Exposure", "rate " + exposure);
+            previewRequestBuilder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, exposure);
+            updatePreview();
+        }
+    }
+
+    @Override
+    public void onFlashToggle() {
+        if(flashIsOn){
+            previewRequestBuilder.set(CaptureRequest.FLASH_MODE,CaptureRequest.FLASH_MODE_OFF);
+        } else {
+            previewRequestBuilder.set(CaptureRequest.FLASH_MODE,CaptureRequest.FLASH_MODE_TORCH);
+        }
+        flashIsOn = !flashIsOn;
+        updatePreview();
+    }
+
+    @Override
+    public void onZoomPercentageChange(int percentage) {
+        Rect activePixels = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+        Log.v("Zoom","%"+percentage);
+        int leftTopX = (percentage*activePixels.width())/200;
+        int leftTopY = (percentage*activePixels.height())/200;
+        int rightBottomX = activePixels.width() - leftTopX;
+        int rightBottomY = activePixels.height() - leftTopY;
+
+        Log.v("Rect","coord:" + leftTopX + " " + leftTopY + " " + rightBottomX + " " + rightBottomY);
+        zoomCrop = new Rect(leftTopX,leftTopY,rightBottomX,rightBottomY);
+        previewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION,zoomCrop);
+        updatePreview();
+    }
+
+    public interface CaptureListener {
+        void onCapture(String path);
     }
 }

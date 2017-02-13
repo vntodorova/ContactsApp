@@ -1,4 +1,4 @@
-package com.example.venetatodorova.contacts;
+package com.example.venetatodorova.contacts.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -18,6 +18,9 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.example.venetatodorova.contacts.R;
+
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -75,14 +78,17 @@ public class ContactsAdapter extends CursorAdapter {
     }
 
     private Bitmap getCircleBitmap(Bitmap bitmap) {
-        Bitmap circleBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        if(bitmap != null){
+            Bitmap circleBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
 
-        BitmapShader shader = new BitmapShader (bitmap,  Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
-        Paint paint = new Paint();
-        paint.setShader(shader);
+            BitmapShader shader = new BitmapShader (bitmap,  Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+            Paint paint = new Paint();
+            paint.setShader(shader);
 
-        Canvas c = new Canvas(circleBitmap);
-        c.drawCircle(bitmap.getWidth()/2, bitmap.getHeight()/2, bitmap.getWidth()/2, paint);
-        return circleBitmap;
+            Canvas c = new Canvas(circleBitmap);
+            c.drawCircle(bitmap.getWidth()/2, bitmap.getHeight()/2, bitmap.getWidth()/2, paint);
+            return circleBitmap;
+        }
+        return bitmap;
     }
 }

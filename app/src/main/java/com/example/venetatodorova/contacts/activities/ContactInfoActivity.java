@@ -1,10 +1,13 @@
-package com.example.venetatodorova.contacts;
+package com.example.venetatodorova.contacts.activities;
 
 import android.app.Activity;
+import android.app.ActivityOptions;
+import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDiskIOException;
 import android.graphics.Bitmap;
@@ -15,13 +18,28 @@ import android.graphics.Paint;
 import android.graphics.Shader;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
+import android.transition.Explode;
+import android.transition.Slide;
+import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.venetatodorova.contacts.fragments.CameraFragment;
+import com.example.venetatodorova.contacts.fragments.ContactsFragment;
+import com.example.venetatodorova.contacts.models.ContactsWrapper;
+import com.example.venetatodorova.contacts.R;
+
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class ContactInfoActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -33,11 +51,17 @@ public class ContactInfoActivity extends AppCompatActivity implements View.OnCli
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
+        getWindow().setExitTransition(new Explode());
         setContentView(R.layout.contact_info_activity);
         Bundle bundle = getIntent().getExtras();
         contactID = bundle.getString(ContactsFragment.DATA);
         contact = getContactFromId(contactID);
+        initUI();
 
+    }
+
+    private void initUI() {
         TextView name = (TextView) findViewById(R.id.contactName);
         name.setText(contact.getName());
 
@@ -147,24 +171,37 @@ public class ContactInfoActivity extends AppCompatActivity implements View.OnCli
     @Override
     public void onClick(View view) {
         Intent intent = new Intent(this, CameraActivity.class);
-        startActivityForResult(intent, REQUEST_CODE);
+        startActivityForResult(intent, REQUEST_CODE, ActivityOptions.makeSceneTransitionAnimation(this).toBundle());
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1) {
             if (resultCode == Activity.RESULT_OK) {
-                Bundle bundle = data.getExtras();
-                byte[] image = bundle.getByteArray("result");
-                setContactImage(image);
+                //Bundle bundle = data.getExtras();
+                //String imagePath = bundle.getString(CameraActivity.EXTRA);
+                if (CameraFragment.PATH != null) {
+                    byte[] bytes = fileToByteArray(new File(CameraFragment.PATH));
+                    setContactImage(bytes);
+                }
             }
         }
+    }
+
+    private byte[] fileToByteArray(File file) {
+        int size = (int) file.length();
+        byte[] bytes = new byte[size];
+        try(BufferedInputStream buf = new BufferedInputStream(new FileInputStream(file))) {
+            buf.read(bytes, 0, bytes.length);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bytes;
     }
 
     private void setContactImage(byte[] image) {
         Uri rawContactUri = getPictureUri();
         ContentResolver cr = getContentResolver();
-        ContentValues values = new ContentValues();
         int photoRow = -1;
         long rawContactId = -1;
         Cursor cursor = cr.query(ContactsContract.Data.CONTENT_URI,
@@ -179,20 +216,21 @@ public class ContactInfoActivity extends AppCompatActivity implements View.OnCli
             rawContactId = cursor.getLong(cursor.getColumnIndex(ContactsContract.Data.RAW_CONTACT_ID));
             cursor.close();
         }
-        values.put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId);
-        values.put(ContactsContract.Data.IS_SUPER_PRIMARY, 1);
-        values.put(ContactsContract.CommonDataKinds.Photo.PHOTO, image);
-        values.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE);
-        try {
-            if (photoRow >= 0) {
-                cr.update(ContactsContract.Data.CONTENT_URI, values, ContactsContract.Data._ID + " = " + photoRow, null);
-            } else {
-                cr.insert(ContactsContract.Data.CONTENT_URI, values);
-            }
-        } catch (SQLiteDiskIOException dIOe) {
-            dIOe.printStackTrace();
-        }
 
+        ArrayList<ContentProviderOperation> ops = new ArrayList<>();
+        ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+                .withSelection(ContactsContract.Data._ID + " = ?", new String[] {Integer.toString(photoRow)})
+                .withValue(ContactsContract.Data.RAW_CONTACT_ID, rawContactId)
+                .withValue(ContactsContract.Data.IS_SUPER_PRIMARY, 1)
+                .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
+                .withValue(ContactsContract.Data.DATA15, image)
+                .build());
+
+        try {
+            cr.applyBatch(ContactsContract.AUTHORITY, ops);
+        } catch (RemoteException | OperationApplicationException e) {
+            e.printStackTrace();
+        }
         imageView.setImageBitmap(getCircleBitmap(getContactImage(Long.valueOf(contactID))));
     }
 

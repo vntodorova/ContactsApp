@@ -1,4 +1,4 @@
-package com.example.venetatodorova.contacts;
+package com.example.venetatodorova.contacts.activities;
 
 import android.Manifest;
 import android.content.Intent;
@@ -14,7 +14,11 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import static com.example.venetatodorova.contacts.ContactsFragment.DATA;
+import com.example.venetatodorova.contacts.adapters.ContactsAdapter;
+import com.example.venetatodorova.contacts.fragments.ContactsFragment;
+import com.example.venetatodorova.contacts.R;
+
+import static com.example.venetatodorova.contacts.fragments.ContactsFragment.DATA;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener{
 

@@ -1,22 +1,29 @@
-package com.example.venetatodorova.contacts;
+package com.example.venetatodorova.contacts.activities;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.hardware.Camera;
 import android.os.Bundle;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.transition.Slide;
+import android.util.Log;
+import android.view.Window;
 
-public class CameraActivity extends AppCompatActivity implements CameraFragment.CaptureListener{
+import com.example.venetatodorova.contacts.fragments.CameraFragment;
+import com.example.venetatodorova.contacts.R;
+
+public class CameraActivity extends AppCompatActivity implements CameraFragment.CaptureListener {
 
     private CameraFragment fragment;
-    private String TAG = "CameraTag";
+    private static String TAG = "CameraTag";
+    public static String EXTRA = "Result";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
+        getWindow().setAllowEnterTransitionOverlap(true);
+        getWindow().setEnterTransition(new Slide());
         setContentView(R.layout.activity_camera);
-
         fragment = (CameraFragment) getFragmentManager().findFragmentByTag(TAG);
 
         if (fragment == null) {
@@ -27,9 +34,9 @@ public class CameraActivity extends AppCompatActivity implements CameraFragment.
     }
 
     @Override
-    public void onCapture(byte[] capture) {
+    public void onCapture(String path) {
         Intent returnIntent = new Intent();
-        returnIntent.putExtra("result", capture);
+        //returnIntent.putExtra(EXTRA, path);
         setResult(Activity.RESULT_OK, returnIntent);
         finish();
     }

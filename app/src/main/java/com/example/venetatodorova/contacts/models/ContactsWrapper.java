@@ -1,29 +1,29 @@
-package com.example.venetatodorova.contacts;
+package com.example.venetatodorova.contacts.models;
 
 import android.graphics.Bitmap;
 
-class ContactsWrapper{
+public class ContactsWrapper{
     private Bitmap image;
     private String name;
     private String mobileNumbers;
     private String email;
 
-    ContactsWrapper() {
+    public ContactsWrapper() {
     }
 
-    Bitmap getImage() {
+    public Bitmap getImage() {
         return image;
     }
 
-    void setEmail(String email) {
+    public void setEmail(String email) {
         this.email = email;
     }
 
-    String getEmail() {
+    public String getEmail() {
         return email;
     }
 
-    void setImage(Bitmap image) {
+    public void setImage(Bitmap image) {
         this.image = image;
     }
 
@@ -35,11 +35,11 @@ class ContactsWrapper{
         this.name = name;
     }
 
-    void setMobileNumber(String mobileNumbers) {
+    public void setMobileNumber(String mobileNumbers) {
         this.mobileNumbers = mobileNumbers;
     }
 
-    String getMobileNumbers() {
+    public String getMobileNumbers() {
         return mobileNumbers;
     }
 

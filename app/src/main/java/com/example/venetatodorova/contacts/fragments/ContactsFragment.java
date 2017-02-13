@@ -1,5 +1,4 @@
-package com.example.venetatodorova.contacts;
-import android.content.Intent;
+package com.example.venetatodorova.contacts.fragments;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -8,9 +7,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
+
+import com.example.venetatodorova.contacts.adapters.ContactsAdapter;
+import com.example.venetatodorova.contacts.R;
 
 public class ContactsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
