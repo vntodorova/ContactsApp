@@ -7,32 +7,25 @@ public class ContactsWrapper{
     private String name;
     private String mobileNumbers;
     private String email;
+    private String ID;
 
     public ContactsWrapper() {
-    }
-
-    public Bitmap getImage() {
-        return image;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getEmail() {
-        return email;
     }
 
     public void setImage(Bitmap image) {
         this.image = image;
     }
 
-    public String getName() {
-        return name;
+    public Bitmap getImage() {
+        return image;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public void setMobileNumber(String mobileNumbers) {
@@ -43,4 +36,19 @@ public class ContactsWrapper{
         return mobileNumbers;
     }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setID(String ID) {
+        this.ID = ID;
+    }
+
+    public String getID() {
+        return ID;
+    }
 }

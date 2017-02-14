@@ -125,12 +125,12 @@ public class DrawerAdapter extends ArrayAdapter<DrawerElement> {
         return view;
     }
 
-    static class ViewHolderSeekbar {
+    private static class ViewHolderSeekbar {
         TextView txtTitle;
         SeekBar seekBar;
     }
 
-    static class ViewHolderCheckbox {
+    private static class ViewHolderCheckbox {
         TextView txtTitle;
         CheckBox button;
     }

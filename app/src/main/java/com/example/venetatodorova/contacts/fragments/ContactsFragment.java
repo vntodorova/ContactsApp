@@ -16,7 +16,6 @@ public class ContactsFragment extends Fragment implements LoaderManager.LoaderCa
 
     public static final String DATA = "Data";
     private ContactsAdapter adapter;
-    private ListView listView;
 
     public static ContactsFragment newInstance() {
         return new ContactsFragment();
@@ -28,7 +27,7 @@ public class ContactsFragment extends Fragment implements LoaderManager.LoaderCa
         setRetainInstance(true);
         adapter = new ContactsAdapter(getContext(), null, 0);
         getLoaderManager().initLoader(0, null, this);
-        listView = (ListView) getActivity().findViewById(R.id.listView);
+        ListView listView = (ListView) getActivity().findViewById(R.id.listView);
         listView.setAdapter(adapter);
     }
 
@@ -39,14 +38,13 @@ public class ContactsFragment extends Fragment implements LoaderManager.LoaderCa
                 ContactsContract.Contacts.DISPLAY_NAME,
                 ContactsContract.Contacts.PHOTO_URI,
         };
-        CursorLoader cursorLoader = new CursorLoader(getActivity(),
+
+        return new CursorLoader(getActivity(),
                 ContactsContract.Contacts.CONTENT_URI,
                 projectionFields,
                 null,
                 null,
                 "display_name ASC");
-
-        return cursorLoader;
     }
 
     @Override

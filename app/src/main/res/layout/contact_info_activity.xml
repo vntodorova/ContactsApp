@@ -11,13 +11,23 @@
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_centerHorizontal="true"
-        android:layout_margin="50dp"/>
+        android:layout_margin="30dp"/>
+
+    <Button
+        android:id="@+id/gallery_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/contactImage"
+        android:text="@string/open_image_in_gallery"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp"
+        android:onClick="openInGallery"/>
 
     <TextView
         android:id="@+id/contactName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/contactImage"
+        android:layout_below="@+id/gallery_button"
         android:layout_centerHorizontal="true"
         android:textSize="30sp"/>
 

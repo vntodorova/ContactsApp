@@ -24,7 +24,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 1;
     private static final String FRAGMENT_TAG = "FragmentTag";
-    private static ContactsFragment contactsFragment;
     ListView listview;
 
     @Override
@@ -37,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
 
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        contactsFragment = ContactsFragment.newInstance();
+        ContactsFragment contactsFragment = ContactsFragment.newInstance();
         fragmentTransaction.add(android.R.id.content, contactsFragment, FRAGMENT_TAG).commit();
 
         listview = (ListView) findViewById(R.id.listView);
@@ -48,7 +47,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         Cursor cursor = ((ContactsAdapter) adapterView.getAdapter()).getCursor();
         cursor.moveToPosition(i);
-
         String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
         Intent intent = new Intent(this, ContactInfoActivity.class);
         intent.putExtra(DATA, id);
