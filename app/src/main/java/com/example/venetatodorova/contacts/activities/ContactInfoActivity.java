@@ -36,6 +36,7 @@ import com.example.venetatodorova.contacts.R;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -178,10 +179,10 @@ public class ContactInfoActivity extends AppCompatActivity implements View.OnCli
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1) {
             if (resultCode == Activity.RESULT_OK) {
-                //Bundle bundle = data.getExtras();
-                //String imagePath = bundle.getString(CameraActivity.EXTRA);
-                if (CameraFragment.PATH != null) {
-                    byte[] bytes = fileToByteArray(new File(CameraFragment.PATH));
+                Bundle bundle = data.getExtras();
+                String imagePath = bundle.getString(CameraActivity.EXTRA);
+                if (imagePath != null) {
+                    byte[] bytes = fileToByteArray(new File(imagePath));
                     setContactImage(bytes);
                 }
             }
@@ -217,6 +218,9 @@ public class ContactInfoActivity extends AppCompatActivity implements View.OnCli
             cursor.close();
         }
 
+        image = compressImage(image);
+
+
         ArrayList<ContentProviderOperation> ops = new ArrayList<>();
         ops.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
                 .withSelection(ContactsContract.Data._ID + " = ?", new String[] {Integer.toString(photoRow)})
@@ -232,6 +236,15 @@ public class ContactInfoActivity extends AppCompatActivity implements View.OnCli
             e.printStackTrace();
         }
         imageView.setImageBitmap(getCircleBitmap(getContactImage(Long.valueOf(contactID))));
+    }
+
+    private byte[] compressImage(byte[] image) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inSampleSize = 8;
+        Bitmap preview_bitmap = BitmapFactory.decodeByteArray(image,0,image.length,options);
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        preview_bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        return stream.toByteArray();
     }
 
     private Uri getPictureUri() {

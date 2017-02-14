@@ -36,7 +36,7 @@ public class CameraActivity extends AppCompatActivity implements CameraFragment.
     @Override
     public void onCapture(String path) {
         Intent returnIntent = new Intent();
-        //returnIntent.putExtra(EXTRA, path);
+        returnIntent.putExtra(EXTRA, path);
         setResult(Activity.RESULT_OK, returnIntent);
         finish();
     }
